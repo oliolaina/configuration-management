@@ -1,3 +1,7 @@
-#Задача 2
+Задача 1
+Код программы:
+cut -f1 -d: /etc/passwd | sort
+
+Задача 2
 Код программы:
 cat /etc/protocols | sort -k 2nr | head -n 5 | awk '{print $2, $1}'
