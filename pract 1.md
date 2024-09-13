@@ -11,4 +11,4 @@ cut -f1 -d: /etc/passwd | sort
 
 cat /etc/protocols | sort -k 2nr | head -n 5 | awk '{print $2, $1}'
 ```
-![screen](screenshots/pr1/task 2.jpg)
+![screen](https://github.com/oliolaina/configuration-management/blob/d1cc57ed653c201b4db1b882b07fccb7c03cdbcd/screenshots/pr1/task%202.jpg)
