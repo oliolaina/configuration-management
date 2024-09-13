@@ -11,3 +11,4 @@ cut -f1 -d: /etc/passwd | sort
 
 cat /etc/protocols | sort -k 2nr | head -n 5 | awk '{print $2, $1}'
 ```
+![screen](screenshots/pr1/task 2.jpg)
