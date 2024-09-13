@@ -4,7 +4,7 @@
 
 cut -f1 -d: /etc/passwd | sort
 ```
-![скрин](https://github.com/oliolaina/configuration-management/blob/main/prac%201%20task%201%20img.jpeg)
+![скрин](https://github.com/oliolaina/configuration-management/blob/d9763c90d001a266e4caf3b9e608a3ccd8ac0e67/screenshots/pr1/task1.jpeg)
 # Задача 2
 ## Код программы:
 ```
