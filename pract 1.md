@@ -66,11 +66,11 @@ sudo cp "$1" /usr/local/bin/
 #!/bin/bash
 
 for file in "$@"; do
-  # Проверка на наличие допустимого расширения
+  
   if [[ "$file" =~ \.(c|js|py)$ ]]; then
     first_line=$(head -n 1 "$file")
 
-    # Проверка на комментарий в первой строке для разных типов файлов
+    
     if [[ "$file" =~ \.c$ && "$first_line" =~ ^// ]] || \
        [[ "$file" =~ \.js$ && "$first_line" =~ ^// ]] || \
        [[ "$file" =~ \.py$ && "$first_line" =~ ^# ]]; then
@@ -88,30 +88,41 @@ done
 ## Код программы:
 ```
 
+#!/bin/bash
 
+find "$1" -type f -exec md5sum {} + | sort | uniq -w32 -dD
 ```
+![image](https://github.com/user-attachments/assets/a07ec069-348c-4600-af52-327b923426e8)
 
 
 # Задача 8
 ## Код программы:
 ```
 
+#!/bin/bash
 
+find . -name "*.$1" -print0 -maxdepth 1 | tar -czvf archive.tar.gz --null -T -
 ```
+![image](https://github.com/user-attachments/assets/84d25b0c-95ee-4fbe-aa7a-7180d56d8c6a)
 
 
 # Задача 9
 ## Код программы:
 ```
 
+#!/bin/bash
 
+sed 's/    /\t/g' "$1" > "$2"
 ```
+![image](https://github.com/user-attachments/assets/b3482d76-46b1-4976-8616-45cdbb49ed38)
 
 
 # Задача 10
 ## Код программы:
 ```
 
+#!/bin/bash
 
+find "$1" -type f -empty -name "*.txt"
 ```
 
