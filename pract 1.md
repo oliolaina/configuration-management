@@ -125,4 +125,5 @@ sed 's/    /\t/g' "$1" > "$2"
 
 find "$1" -type f -empty -name "*.txt"
 ```
+![image](https://github.com/user-attachments/assets/37a90540-5170-47c9-aa08-9a8f7f19c0bf)
 
