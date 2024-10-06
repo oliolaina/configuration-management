@@ -2,6 +2,8 @@ from zipfile import ZipFile
 import sys
 import os
 import datetime
+import shutil
+
 
 #параметры для запуска эмулятора, если дополнительные ключи не были введены
 username = "user"
@@ -23,7 +25,7 @@ if (len(sys.argv) >= 3):
     if os.path.exists(sys.argv[2]) == 0:
         errorargs()
     virtualfs = sys.argv[2]
-if (len(sys.argv) >= 3):
+if (len(sys.argv) >= 4):
     if os.path.exists(sys.argv[3]) == 0:
         errorargs()
     startscript = sys.argv[3]
@@ -35,7 +37,7 @@ class emulator:
         self.username = username
         self.filesystem = ZipFile(virtualfs, "a")
         self.start = startscript
-        self.curdir = "Pictures" #текущая директория
+        self.curdir = "" #текущая директория
         self.dirs = self.upddirs()
 
     def upddirs(self):#список всех директорий файловой системы
@@ -129,7 +131,8 @@ class emulator:
                 flist.add(way[len(place)-1])
             #print(way)
         for i in flist:
-            print(i)
+            if i!="" :
+                print(i)
         if len(flist) == 0:
             print("No such directory:", arg)
 
@@ -152,7 +155,9 @@ class emulator:
                     self.curdir = ""
                 if arg[1:] in self.dirs:
                     self.curdir = arg[1:]
-            elif ((self.curdir + '/' + arg) in self.dirs) or (self.curdir == "" and (self.curdir + arg) in self.dirs):
+            elif ((self.curdir + '/' + arg) in self.dirs):
+                self.curdir += "/"+arg
+            elif (self.curdir == "" and (self.curdir + arg) in self.dirs):
                 self.curdir += arg
             else:
                 print("No such directory:", arg)
@@ -162,11 +167,88 @@ class emulator:
         print(current_date)
 
     def cp(self, arg1, arg2):
-        pass
+        #поиск копируемого файла
+        file_isfound = False
+        file1 = self.filesystem.infolist
 
+        if arg1[0] == '/': #абсолютный путь к файлу
+            for f in self.filesystem.infolist():
+                if f.filename.encode('cp437').decode('cp866') == arg1[1:]:
+                    file_isfound = True
+                    file1 = f
+        else:#относительный
+            for f in self.filesystem.infolist():
+                if (self.curdir == "" and f.filename.encode('cp437').decode('cp866') == arg1) or (f.filename.encode('cp437').decode('cp866') == self.curdir + '/' + arg1):
+                    file_isfound = True
+                    file1 = f
+        if file_isfound == False:
+            print("file not found:", arg1)
+            return
+
+        argument2 = ""
+        file2 = ""
+        file2name = os.path.basename(arg1)
+        #проверка, является ли вророй аргумент директорией
+        if arg2[0] == "/":
+            if arg2[1:] in self.dirs:
+                argument2 = "dir"
+                file2 = arg2[1:]
+            elif arg2[1:arg2.rfind("/")] in self.dirs:
+                argument2 = "file"
+                file2 = arg2[1:arg2.rfind("/")]
+                file2name = arg2[arg2.rfind("/")+1:]
+        else:
+            if (self.curdir == "" and arg2 in self.dirs) or (self.curdir + '/' + arg2) in self.dirs:
+                argument2 = "dir"
+                file2 =  arg2
+            elif (self.curdir == "" and arg2[0:arg2.rfind("/")] in self.dirs) or (self.curdir + '/' + arg2[0:arg2.rfind("/")]) in self.dirs:
+                argument2 = "file"
+                file2 =  arg2[:arg2.rfind("/")]
+                file2name = arg2[arg2.rfind("/") + 1:]
+        if (arg2[0]=='/' and arg2.count('/') == 1) or (arg2.count('/') == 0):
+            argument2 = "file"
+            file2name = arg2
+        if argument2 == "":
+            print("Incorrect path:",arg2)
+            return
+
+
+        # Извлекаем содержимое файла
+        with self.filesystem.open(file1.filename, 'r') as source_file:
+            file_data = source_file.read()
+
+        # Создаём временный zip-файл, чтобы переместить данные
+        temp_zip_path = 'temp_fs.zip'
+        with ZipFile(temp_zip_path, 'w') as temp_zip:
+            # Копируем все файлы
+            for file in self.filesystem.filelist:
+                temp_zip.writestr(file.filename, self.filesystem.read(file.filename))
+
+            # Добавляем файл с новым путем
+            if file2 == "":
+                temp_zip.writestr(file2name, file_data)
+            if argument2 == "file":
+                temp_zip.writestr(file2 + '/' + file2name, file_data)
+            elif argument2 == "dir":
+                temp_zip.writestr(file2 + '/' + file2name, file_data)
+
+        # Заменяем старый архив новым
+        shutil.move(temp_zip_path, virtualfs)
+
+        # Обновляем файловую систему
+        self.filesystem.close()
+        self.filesystem = ZipFile(virtualfs)
 
 
 shell = emulator()
+script = open(startscript)
+while True:
+	content=script.readline()
+	if not content:
+		break
+	shell.readcmd(content)
+script.close()
+
 while True:
     print(shell.username+":~"+shell.curdir+"$ ", end = "")
     cmd = input()
