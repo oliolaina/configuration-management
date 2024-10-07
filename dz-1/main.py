@@ -50,6 +50,7 @@ class emulator:
 
     def readcmd(self, inputline):#чтение и обработка введённых команд
         command = []
+        #print(inputline)
 
         if len(inputline) == 0:
             return
@@ -130,11 +131,14 @@ class emulator:
             else:
                 flist.add(way[len(place)-1])
             #print(way)
-        for i in flist:
-            if i!="" :
-                print(i)
         if len(flist) == 0:
             print("No such directory:", arg)
+            return
+        #flist.sort()
+        for i in sorted(flist):
+            if i!="" :
+                print(i)
+
 
 
     def cd(self, arg):
@@ -176,6 +180,7 @@ class emulator:
                 if f.filename.encode('cp437').decode('cp866') == arg1[1:]:
                     file_isfound = True
                     file1 = f
+                #print(f.filename.encode('cp437').decode('cp866'),arg1[1:])
         else:#относительный
             for f in self.filesystem.infolist():
                 if (self.curdir == "" and f.filename.encode('cp437').decode('cp866') == arg1) or (f.filename.encode('cp437').decode('cp866') == self.curdir + '/' + arg1):
@@ -187,9 +192,20 @@ class emulator:
 
         argument2 = ""
         file2 = ""
-        file2name = os.path.basename(arg1)
+        file2name = os.path.basename(file1.filename)
+        #print(file2name)
+
         #проверка, является ли вророй аргумент директорией
-        if arg2[0] == "/":
+        if arg2 == ".":
+            argument2 = "dir"
+            file2 = self.curdir
+
+        elif (arg2.count("/") == 0):
+            argument2 = "file"
+            file2 = self.curdir
+            file2name = arg2
+
+        elif arg2[0] == "/":
             if arg2[1:] in self.dirs:
                 argument2 = "dir"
                 file2 = arg2[1:]
@@ -205,14 +221,12 @@ class emulator:
                 argument2 = "file"
                 file2 =  arg2[:arg2.rfind("/")]
                 file2name = arg2[arg2.rfind("/") + 1:]
-        if (arg2[0]=='/' and arg2.count('/') == 1) or (arg2.count('/') == 0):
-            argument2 = "file"
-            file2name = arg2
+
         if argument2 == "":
             print("Incorrect path:",arg2)
             return
 
-
+        #print(file2, file2name)
         # Извлекаем содержимое файла
         with self.filesystem.open(file1.filename, 'r') as source_file:
             file_data = source_file.read()
@@ -239,17 +253,19 @@ class emulator:
         self.filesystem.close()
         self.filesystem = ZipFile(virtualfs)
 
+if __name__ == "__main__":
+    shell = emulator()
+    script = open(startscript)
+    while True:
+        content=script.readline()
+        if not content:
+            break
+        shell.readcmd(content)
+    script.close()
 
-shell = emulator()
-script = open(startscript)
-while True:
-	content=script.readline()
-	if not content:
-		break
-	shell.readcmd(content)
-script.close()
+    while True:
+        print(shell.username+":~"+shell.curdir+"$ ", end = "")
+        cmd = input()
+        shell.readcmd(cmd)
 
-while True:
-    print(shell.username+":~"+shell.curdir+"$ ", end = "")
-    cmd = input()
-    shell.readcmd(cmd)
+
